@@ -149,3 +149,31 @@ SELECT surname, firstname, memid, starttime
 FROM bookings
 WHERE starttime IS NOT NULL
 ORDER BY memid;
+
+
+/*
+Produce a list of member names, with each row containing the total member count.
+Order by join date, and include guest members.
+*/
+SELECT COUNT(*) OVER() AS count, firstname, surname
+FROM cd.members
+ORDER BY joindate;
+
+
+/*
+Produce a monotonically increasing numbered list of members (including guests),
+ordered by their date of joining.
+Remember that member IDs are not guaranteed to be sequential.
+*/
+-- Use COUNT(*), not intuitive
+SELECT COUNT(*) OVER(PARTITION BY 1 ORDER BY joindate) AS row_number,
+    firstname,
+    surname
+    FROM cd.members
+ORDER BY joindate;
+-- Use ROW_NUMBER()
+SELECT ROW_NUMBER() OVER(ORDER BY joindate), firstname, surname
+FROM cd.members
+ORDER BY joindate;
+
+
