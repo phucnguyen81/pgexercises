@@ -165,8 +165,8 @@ Produce a monotonically increasing numbered list of members (including guests),
 ordered by their date of joining.
 Remember that member IDs are not guaranteed to be sequential.
 */
--- Use COUNT(*), not intuitive
-SELECT COUNT(*) OVER(PARTITION BY 1 ORDER BY joindate) AS row_number,
+-- Use COUNT(*)
+SELECT COUNT(*) OVER(ORDER BY joindate) AS row_number,
     firstname,
     surname
     FROM cd.members
@@ -177,3 +177,17 @@ FROM cd.members
 ORDER BY joindate;
 
 
+/*
+Output the facility id that has the highest number of slots booked.
+Ensure that in the event of a tie, all tieing results get output.
+*/
+WITH ranks AS
+    (SELECT facid,
+        SUM(slots) total,
+        RANK() OVER (ORDER BY SUM(slots) DESC) AS rank
+     FROM cd.bookings
+     GROUP BY facid)
+SELECT facid, total
+FROM ranks
+WHERE rank = 1
+ORDER BY facid;
