@@ -191,3 +191,22 @@ SELECT facid, total
 FROM ranks
 WHERE rank = 1
 ORDER BY facid;
+
+
+/*
+Produce a list of members (including guests),
+along with the number of hours they've booked in facilities,
+rounded to the nearest ten hours.
+Rank them by this rounded figure,
+producing output of first name, surname, rounded hours, rank.
+Sort by rank, surname, and first name.
+*/
+WITH hours AS
+    (SELECT memid, ROUND(SUM(slots) / 2.0, -1) AS hours
+     FROM cd.bookings
+     GROUP BY memid)
+SELECT firstname, surname, hours, RANK() OVER (ORDER BY hours DESC) AS rank
+FROM hours
+INNER JOIN cd.members USING (memid)
+ORDER BY rank, surname, firstname;
+
