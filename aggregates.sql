@@ -229,3 +229,29 @@ FROM cd.facilities
 INNER JOIN facrev USING (facid)
 ORDER BY rank, name
 LIMIT 3;
+
+
+/*
+Classify facilities into equally sized groups of high, average, and low based on their revenue.
+Order by classification and facility name.
+*/
+WITH facrev AS
+    (SELECT name,
+            SUM(CASE
+                    WHEN memid = 0 THEN guestcost
+                    ELSE membercost
+                END * slots) AS revenue
+     FROM cd.facilities
+     INNER JOIN cd.bookings USING (facid)
+     GROUP BY facid),
+     classes AS
+    (SELECT name, NTILE(3) over(ORDER BY revenue DESC) AS class
+     FROM facrev
+     ORDER BY class, name)
+SELECT name,
+       CASE
+           WHEN class = 1 THEN 'high'
+           WHEN class = 2 THEN 'average'
+           ELSE 'low'
+       END AS revenue
+FROM classes;
