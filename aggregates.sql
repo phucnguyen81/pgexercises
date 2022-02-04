@@ -210,3 +210,22 @@ FROM hours
 INNER JOIN cd.members USING (memid)
 ORDER BY rank, surname, firstname;
 
+
+/*
+Produce a list of the top three revenue generating facilities (including ties).
+Output facility name and rank, sorted by rank and facility name.
+*/
+WITH facrev AS
+    (SELECT facid,
+            sum(CASE
+                    WHEN memid = 0 THEN guestcost
+                    ELSE membercost
+                END * slots) AS revenue
+     FROM cd.facilities
+     INNER JOIN cd.bookings USING (facid)
+     GROUP BY facid)
+SELECT name, rank() OVER (ORDER BY revenue DESC) AS rank
+FROM cd.facilities
+INNER JOIN facrev USING (facid)
+ORDER BY rank, name
+LIMIT 3;
