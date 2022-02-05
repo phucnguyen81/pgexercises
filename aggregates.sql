@@ -255,3 +255,37 @@ SELECT name,
            ELSE 'low'
        END AS revenue
 FROM classes;
+
+
+/*
+Based on the 3 complete months of data so far,
+calculate the amount of time each facility will take to repay its cost of ownership.
+Remember to take into account ongoing monthly maintenance.
+Output facility name and payback time in months, order by facility name.
+Don't worry about differences in month lengths, we're only looking for a rough value here!
+
+Expected Results:
+Name                    Months
+Badminton Court         6.8317677198975235
+Massage Room 1	        0.18885741265344664778
+...
+*/
+-- simlistic version with hard-coded 3 months and no special cases
+WITH facrev AS
+    (SELECT facid,
+            sum(CASE
+                    WHEN memid = 0 THEN guestcost
+                    ELSE membercost
+                END * slots) AS revenue
+     FROM cd.facilities
+     INNER JOIN cd.bookings USING (facid)
+     GROUP BY facid)
+SELECT name,
+       CASE
+           WHEN initialoutlay = 0 OR (revenue > 3 * monthlymaintenance) THEN 
+                (initialoutlay) / ((revenue/3) - monthlymaintenance)
+           ELSE -1
+       END AS months
+FROM cd.facilities AS fac
+INNER JOIN facrev USING (facid)
+ORDER BY name;
